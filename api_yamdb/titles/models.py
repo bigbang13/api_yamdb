@@ -24,17 +24,19 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=256)
-    year = models.PositiveIntegerField(max_length=4)
+    year = models.PositiveIntegerField()
     description = models.TextField()
     genre = models.ForeignKey(
         Genre,
         on_delete=models.SET_NULL,
-        related_name="titles"
+        related_name="titles",
+        null=True
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        related_name="titles"
+        related_name="titles",
+        null=True
     )
 
     def __str__(self) -> str:
