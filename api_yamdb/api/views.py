@@ -6,6 +6,7 @@ from rest_framework import filters, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import (TitleSerializer, CategorySerializer, GenreSerializer)
+from .serializers import (TitleSerializer, CategorySerializer, GenreSerializer,
+                          ReviewsSerializer, CommentsSerializer)
 from .permissions import IsAdminOrReadOnly
 
