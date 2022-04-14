@@ -7,7 +7,7 @@ User = get_user_model()
 # TODO - заменить
 
 
-class Review(models.Model):
+class Reviews(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -40,9 +40,9 @@ class Review(models.Model):
         return self.text[:30]
 
 
-class Comment(models.Model):
+class Comments(models.Model):
     review = models.ForeignKey(
-        Review,
+        Reviews,
         on_delete=models.CASCADE,
         related_name="comments"
     )
