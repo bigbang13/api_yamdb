@@ -33,6 +33,12 @@ class Reviews(models.Model):
         verbose_name = "Rewiew"
         verbose_name_plural = "Rewiews"
         ordering = ["-pub_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title", "author"],
+                name='unique_review'
+            )
+        ]
 
     def __str__(self):
         return self.text[:30]
@@ -58,7 +64,7 @@ class Comments(models.Model):
 
     class Meta:
         verbose_name = "Comment"
-        verbose_name_plural = " Comments"
+        verbose_name_plural = "Comments"
         ordering = ["-pub_date"]
 
     def __str__(self):
