@@ -85,3 +85,15 @@ class CommentViewsTest(TestCase):
         self.assertEqual(user.username, "testusername")
         self.assertEqual(user.email, "test@mail.ru")
         self.assertEqual(user.role, "user")
+
+    def test_signup_create_user_email_unique(self):
+        """При регистрации email делжен быть уникальным"""
+        url = "/api/v1/auth/signup/"
+        User.objects.create(email="test@mail.ru", username="testusername")
+        data = {"email": "test@mail.ru", "username": "testusername_2"}
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(type(response.json()), dict)
+        self.assertEqual(
+            response.json(), {"email": ["email должен быть уникальным"]}
+        )

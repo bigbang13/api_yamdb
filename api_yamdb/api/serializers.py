@@ -61,6 +61,15 @@ class SignUpSerializer(serializers.ModelSerializer):
     """
     email = serializers.EmailField()
 
+    def validate_email(self, value):
+        """Email должен быть уникальным"""
+        lower_email = value.lower()
+        if User.objects.filter(email=lower_email).exists():
+            raise serializers.ValidationError(
+                "email должен быть уникальным"
+            )
+        return lower_email
+
     class Meta:
         model = User
         fields = ('email', 'username',)
