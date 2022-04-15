@@ -12,32 +12,18 @@ class Reviews(models.Model):
         related_name="reviews",
     )
     text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="reviews"
-    )
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reviews")
     score = models.IntegerField(
-        validators=[
-            MinValueValidator(1),
-            MaxValueValidator(10)
-        ]
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
-    pub_date = models.DateTimeField(
-        "Дата публикации",
-        auto_now_add=True,
-        db_index=True
-    )
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = "Rewiew"
         verbose_name_plural = "Rewiews"
         ordering = ["-pub_date"]
         constraints = [
-            models.UniqueConstraint(
-                fields=["title", "author"],
-                name='unique_review'
-            )
+            models.UniqueConstraint(fields=["title", "author"], name="unique_review")
         ]
 
     def __str__(self):
@@ -46,21 +32,11 @@ class Reviews(models.Model):
 
 class Comments(models.Model):
     review = models.ForeignKey(
-        Reviews,
-        on_delete=models.CASCADE,
-        related_name="comments"
+        Reviews, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="comments"
-    )
-    pub_date = models.DateTimeField(
-        "Дата добавления",
-        auto_now_add=True,
-        db_index=True
-    )
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    pub_date = models.DateTimeField("Дата добавления", auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = "Comment"
