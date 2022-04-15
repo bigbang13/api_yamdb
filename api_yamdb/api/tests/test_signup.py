@@ -9,7 +9,7 @@ from users.models import User
 class CommentViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(username="testusername")
+        cls.user = User.objects.create_user(username="authorized_client")
         cls.guest_client = APIClient()
         cls.authorized_client = APIClient()
         cls.authorized_client.force_authenticate(cls.user)
@@ -65,12 +65,22 @@ class CommentViewsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
         self.assertEqual(
-            response.json(), {'email': ['Enter a valid email address.']}
+            response.json(), {"email": ["Enter a valid email address."]}
         )
 
     def test_signup_create_user(self):
-        """Получить код подтверждения на переданный email."""
+        """При регистрации создается пользователь."""
         url = "/api/v1/auth/signup/"
-        data = {"email": "test@mail.ru", "username": "testusername_2"}
+        user_count = User.objects.count()
+        data = {"email": "test@mail.ru", "username": "testusername"}
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(type(response.json()), dict)
+        self.assertEqual(
+            response.json(),
+            {"email": "test@mail.ru", "username": "testusername"},
+        )
+        self.assertEqual(User.objects.count(), user_count + 1)
+        user = User.objects.get(id=2)
+        self.assertEqual(user.username, "testusername")
+        self.assertEqual(user.email, "test@mail.ru")
