@@ -36,6 +36,6 @@ class SignUpAPIView(APIView):
                 [serializer.data.get("email")],
                 fail_silently=False,
             )
-            User.objects.create(**serializer.validated_data)
+            User.objects.create(**serializer.validated_data, role="user")
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

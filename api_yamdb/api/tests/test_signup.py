@@ -84,3 +84,4 @@ class CommentViewsTest(TestCase):
         user = User.objects.get(id=2)
         self.assertEqual(user.username, "testusername")
         self.assertEqual(user.email, "test@mail.ru")
+        self.assertEqual(user.role, "user")
