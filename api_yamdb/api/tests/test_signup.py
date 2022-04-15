@@ -87,7 +87,7 @@ class CommentViewsTest(TestCase):
         self.assertEqual(user.role, "user")
 
     def test_signup_create_user_email_unique(self):
-        """При регистрации email делжен быть уникальным"""
+        """При регистрации email должен быть уникальным"""
         url = "/api/v1/auth/signup/"
         User.objects.create(email="test@mail.ru", username="testusername")
         data = {"email": "test@mail.ru", "username": "testusername_2"}
@@ -95,5 +95,31 @@ class CommentViewsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
         self.assertEqual(
-            response.json(), {"email": ["email должен быть уникальным"]}
+            response.json(), {"email": ["Email должен быть уникальным"]}
+        )
+
+    def test_signup_create_user_username_unique(self):
+        """При регистрации username должен быть уникальным"""
+        url = "/api/v1/auth/signup/"
+        User.objects.create(email="test@mail.ru", username="testusername")
+        data = {"email": "test_2@mail.ru", "username": "testusername"}
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(type(response.json()), dict)
+        self.assertEqual(
+            response.json(),
+            {"username": ["A user with that username already exists."]},
+        )
+
+    def test_signup_create_user_username_not_me(self):
+        """Использовать имя 'me' в качестве username запрещено."""
+        url = "/api/v1/auth/signup/"
+        User.objects.create(email="test@mail.ru", username="testusername")
+        data = {"email": "test_2@mail.ru", "username": "me"}
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(type(response.json()), dict)
+        self.assertEqual(
+            response.json(),
+            {"username": ["Использовать имя 'me' в качестве username запрещено."]},
         )

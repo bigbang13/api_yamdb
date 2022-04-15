@@ -55,20 +55,25 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    """
-    Использовать имя 'me' в качестве username запрещено.
-    Поля email и username должны быть уникальными.
-    """
     email = serializers.EmailField()
 
     def validate_email(self, value):
-        """Email должен быть уникальным"""
+        """Email должен быть уникальным."""
         lower_email = value.lower()
         if User.objects.filter(email=lower_email).exists():
             raise serializers.ValidationError(
-                "email должен быть уникальным"
+                "Email должен быть уникальным"
             )
         return lower_email
+
+    def validate_username(self, value):
+        """Использовать имя 'me' в качестве username запрещено."""
+        # breakpoint()
+        if value.lower() == "me":
+            raise serializers.ValidationError(
+                "Использовать имя 'me' в качестве username запрещено."
+            )
+        return value
 
     class Meta:
         model = User
