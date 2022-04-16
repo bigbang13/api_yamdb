@@ -6,48 +6,44 @@ from titles.models import Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
-        fields = ("name", "slug",)
+        fields = (
+            "name",
+            "slug",
+        )
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Genre
-        fields = ("name", "slug",)
+        fields = (
+            "name",
+            "slug",
+        )
 
 
 class TitleSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Title
         fields = "__all__"
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="username"
-    )
+    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
 
     class Meta:
         model = Reviews
         fields = "__all__"
         validators = [
             UniqueTogetherValidator(
-                queryset=Reviews.objects.all(),
-                fields=("title", "author")
+                queryset=Reviews.objects.all(), fields=("title", "author")
             )
         ]
 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True, 
-        slug_field="username"
-    )
+    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
 
     class Meta:
         model = Comments
@@ -61,9 +57,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         """Email должен быть уникальным."""
         lower_email = value.lower()
         if User.objects.filter(email=lower_email).exists():
-            raise serializers.ValidationError(
-                "Email должен быть уникальным"
-            )
+            raise serializers.ValidationError("Email должен быть уникальным")
         return lower_email
 
     def validate_username(self, value):
@@ -77,4 +71,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username',)
+        fields = (
+            "email",
+            "username",
+        )
