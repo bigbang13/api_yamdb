@@ -14,7 +14,7 @@ from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff
 from .serializers import (CategorySerializer, CommentsSerializer,
                           GenreSerializer, ReviewsSerializer, SignUpSerializer,
                           TitleSerializer)
@@ -111,7 +111,7 @@ class SignUpAPIView(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # TODO - проверить права
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
@@ -135,7 +135,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # TODO - проверить права
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
 
     def get_review(self):
         return get_object_or_404(
