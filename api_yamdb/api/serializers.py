@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Comments, Reviews
+from users.models import User
 from titles.models import Category, Genre, Title
 
 
@@ -51,3 +52,29 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comments
         fields = "__all__"
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """Email должен быть уникальным."""
+        lower_email = value.lower()
+        if User.objects.filter(email=lower_email).exists():
+            raise serializers.ValidationError(
+                "Email должен быть уникальным"
+            )
+        return lower_email
+
+    def validate_username(self, value):
+        """Использовать имя 'me' в качестве username запрещено."""
+        # breakpoint()
+        if value.lower() == "me":
+            raise serializers.ValidationError(
+                "Использовать имя 'me' в качестве username запрещено."
+            )
+        return value
+
+    class Meta:
+        model = User
+        fields = ('email', 'username',)
