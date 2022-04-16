@@ -13,6 +13,7 @@ from .serializers import (
     ReviewsSerializer,
     CommentsSerializer,
     SignUpSerializer,
+    UserSerializer,
 )
 from .permissions import IsAdminOrReadOnly
 from users.models import User
@@ -26,38 +27,39 @@ class SignUpAPIView(APIView):
     """
     Анонимный пользователь высылает JSON c "email" и "username".
     В ответ на почту получает confirmation_code.
-    Создается новый пользователь.
     """
 
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
+        if User.objects.filter(
+            email=request.data.get("email"),
+            username=request.data.get("username"),
+        ).exists():
             send_mail(
                 "Subject here",
                 "string Код подтвержения",
                 "from@example.com",
-                [serializer.data.get("email")],
+                [request.data.get("email")],
                 fail_silently=False,
             )
-            User.objects.create(**serializer.validated_data, role="user")
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                User.objects.create(**serializer.validated_data, role="user")
+                send_mail(
+                    "Subject here",
+                    "string Код подтвержения",
+                    "from@example.com",
+                    [serializer.data.get("email")],
+                    fail_silently=False,
+                )
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-class UserAPIView(APIView):
-    """
-    Пользователь с правами admin высылает JSON c "email" и "username".
-    Создается новый пользователь.
-    """
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
-    # TODO permission_classes = (IsAdminUser,)
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            User.objects.create(**serializer.validated_data, role="user")
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

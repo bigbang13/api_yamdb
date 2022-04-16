@@ -133,7 +133,7 @@ class CommentViewsTest(TestCase):
         url = "/api/v1/users/"
         user_count = User.objects.count()
         data = {"email": "test@mail.ru", "username": "testusername"}
-        response = self.guest_client.post(url, data)
+        response = self.authorized_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), user_count + 1)
         user = User.objects.get(id=2)
