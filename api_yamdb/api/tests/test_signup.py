@@ -113,5 +113,22 @@ class CommentViewsTest(TestCase):
         self.assertEqual(type(response.json()), dict)
         self.assertEqual(
             response.json(),
-            {"username": ["Использовать имя 'me' в качестве username запрещено."]},
+            {
+                "username": [
+                    "Использовать имя 'me' в качестве username запрещено."
+                ]
+            },
         )
+
+    def test_create_user_by_admin(self):
+        """Администратор может создать пользователя."""
+        url = "/api/v1/users/"
+        user_count = User.objects.count()
+        data = {"email": "test@mail.ru", "username": "testusername"}
+        response = self.authorized_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User.objects.count(), user_count + 1)
+        user = User.objects.get(id=2)
+        self.assertEqual(user.username, "testusername")
+        self.assertEqual(user.email, "test@mail.ru")
+        self.assertEqual(user.role, "user")
