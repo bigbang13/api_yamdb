@@ -1,8 +1,6 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-import unittest
-
 from users.models import User
 
 
@@ -13,11 +11,11 @@ class UsersViewsTest(TestCase):
         cls.guest_client = APIClient()
         cls.authorized_client = APIClient()
         cls.authorized_client.force_authenticate(cls.user)
-        cls.user = User.objects.create_user(
+        cls.admin_user = User.objects.create_user(
             username="admin_user", role="admin"
         )
         cls.admin_client = APIClient()
-        cls.admin_client.force_authenticate(cls.user)
+        cls.admin_client.force_authenticate(cls.admin_user)
 
     def test_cool_test(self):
         """cool test"""
@@ -75,14 +73,38 @@ class UsersViewsTest(TestCase):
             {"detail": "You do not have permission to perform this action."},
         )
 
-    # def test_get_users_detail(self):
-    #     """Получение пользователя по username.
-    #     Права доступа: Администратор."""
-    #     url = f"/api/v1/users/{self.user.username}/"
-    #     response = self.authorized_client.get(url)
+    def test_get_users_detail(self):
+        """Получение пользователя по username.
+        Права доступа: Администратор."""
+        url = f"/api/v1/users/{self.user.username}/"
+        response = self.admin_client.get(url)
+        self.assertEqual(
+            User.objects.filter(username=self.user.username).exists(), True
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {
+                "username": "authorized_user",
+                "email": "",
+                "first_name": "",
+                "last_name": "",
+                "bio": "",
+                "role": "",
+            },
+        )
 
-    #     self.assertEqual(
-    #         User.objects.filter(username=self.user.username).exists(), True
-    #     )
-    #     breakpoint()
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_create_user(self):
+        """Добавление пользователя.
+        Права доступа: Администратор."""
+        url = "/api/v1/users/"
+        data = {
+            "username": "string",
+            "email": "user@example.com",
+            "first_name": "string",
+            "last_name": "string",
+            "bio": "string",
+            "role": "user"
+        }
+        response = self.admin_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

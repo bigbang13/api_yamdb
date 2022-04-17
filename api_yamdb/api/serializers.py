@@ -3,11 +3,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Comments, Reviews
-from django.contrib.auth import get_user_model
+from users.models import User
 from titles.models import Category, Genre, Title
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -35,7 +33,9 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
 
     class Meta:
         model = Reviews
@@ -48,7 +48,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
 
     class Meta:
         model = Comments
@@ -113,8 +115,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username = serializers.CharField(max_length=200, required=True,)
-    confirmation_code = serializers.CharField(max_length=200, required=True,)
+    username = serializers.CharField(
+        max_length=200,
+        required=True,
+    )
+    confirmation_code = serializers.CharField(
+        max_length=200,
+        required=True,
+    )
     password = serializers.CharField(
         # required=False,
         # read_only=True,

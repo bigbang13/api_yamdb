@@ -18,7 +18,7 @@ from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, IsAdminUser
+from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, IsAdminRole
 from .serializers import (
     CategorySerializer,
     CommentsSerializer,
@@ -138,9 +138,11 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRole]
     # permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]
     pagination_class = LimitOffsetPagination
+    lookup_field = 'username'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
