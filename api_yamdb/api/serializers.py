@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Comments, Reviews
-from users.models import User
+from users.models import User, ROLE_CHOICES
 from titles.models import Category, Genre, Title
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -85,7 +85,10 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    role = serializers.CharField(default="user")
+    role = serializers.ChoiceField(
+        choices=ROLE_CHOICES,
+        default="user",
+    )
 
     def validate_email(self, value):
         """Email должен быть уникальным."""

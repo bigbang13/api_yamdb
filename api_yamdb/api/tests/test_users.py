@@ -153,9 +153,7 @@ class UsersViewsTest(TestCase):
 
     def test_create_user_by_superuser(self):
         """Добавление пользователя by superuser."""
-        staff_user = User.objects.create_user(
-            username="staff_user"
-        )
+        staff_user = User.objects.create_user(username="staff_user")
         staff_user.is_staff = True
         staff_user.save(update_fields=["is_staff"])
         staffser_client = APIClient()
@@ -172,3 +170,71 @@ class UsersViewsTest(TestCase):
         response = staffser_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), data)
+
+    def test_patch_users_detail(self):
+        """Изменение данных пользователя по username.
+        Права доступа: Администратор."""
+        user = User.objects.create_user(
+            username="testusername",
+            email="user@example.com",
+        )
+        url = f"/api/v1/users/{user.username}/"
+        data = {
+            "username": "new_testusername",
+            "email": "new_user@example.com",
+            "first_name": "string",
+            "last_name": "string",
+            "bio": "string",
+            "role": "moderator",
+        }
+        response = self.admin_client.patch(url, data)
+        self.assertEqual(
+            User.objects.filter(username=self.user.username).exists(), True
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), data)
+
+    def test_patch_users_detail_role(self):
+        """Поменять только роль пользователя.
+        Права доступа: Администратор."""
+        user = User.objects.create_user(
+            username="testusername",
+            email="user@example.com",
+        )
+        url = f"/api/v1/users/{user.username}/"
+        data = {
+            "role": "moderator",
+        }
+        response = self.admin_client.patch(url, data)
+        self.assertEqual(
+            User.objects.filter(username=self.user.username).exists(), True
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "testusername",
+            "email": "user@example.com",
+            "first_name": "",
+            "last_name": "",
+            "bio": "",
+            "role": "moderator",
+        }
+        self.assertEqual(response.json(), test_json)
+
+    def test_patch_users_detail_invalid_role(self):
+        """Нельзя поменять роль пользователя на произвольное значение.
+        Права доступа: Администратор."""
+        user = User.objects.create_user(
+            username="testusername",
+            email="user@example.com",
+        )
+        url = f"/api/v1/users/{user.username}/"
+        data = {
+            "role": "admiral",
+        }
+        response = self.admin_client.patch(url, data)
+        self.assertEqual(
+            User.objects.filter(username=self.user.username).exists(), True
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        test_json = {'role': ['"admiral" is not a valid choice.']}
+        self.assertEqual(response.json(), test_json)

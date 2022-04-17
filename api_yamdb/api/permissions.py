@@ -17,19 +17,6 @@ class IsAuthorOrStaff(permissions.BasePermission):
         )
 
 
-class IsAdminRole(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if (
-            # request.method in permissions.SAFE_METHODS
-            request.user.is_authenticated
-            and request.user.role == "admin"
-        ):
-            return True
-
-    def has_object_permission(self, request, view, obj):
-        return True
-
-
 class UserPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if (
