@@ -5,8 +5,11 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reviews.models import Reviews
@@ -15,9 +18,14 @@ from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff
-from .serializers import (CategorySerializer, CommentsSerializer,
-                          GenreSerializer, ReviewsSerializer, SignUpSerializer,
-                          TitleSerializer)
+from .serializers import (
+    CategorySerializer,
+    CommentsSerializer,
+    GenreSerializer,
+    ReviewsSerializer,
+    SignUpSerializer,
+    TitleSerializer,
+)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -78,7 +86,7 @@ class GenreViewSet(CreateListDestroyViewSet):
             raise PermissionDenied("Создать может только admin!")
         if serializer.is_valid():
             serializer.save()
-    
+
     def perform_destroy(self, instance):
         if self.request.user.role != "admin":
             raise PermissionDenied("Удалять может только admin!")
@@ -92,15 +100,16 @@ class SignUpAPIView(APIView):
     Использовать имя 'me' в качестве username запрещено.
     Поля email и username должны быть уникальными.
     """
+
     permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             send_mail(
-                'Subject here',
-                'string Код подтвержения',
-                'from@example.com',
+                "Subject here",
+                "string Код подтвержения",
+                "from@example.com",
                 [serializer.data.get("email")],
                 fail_silently=False,
             )

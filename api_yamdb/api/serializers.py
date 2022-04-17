@@ -34,7 +34,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reviews
-        fields = "__all__"
+        exclude = ("title",)
         validators = [
             UniqueTogetherValidator(
                 queryset=Reviews.objects.all(), fields=("title", "author")
@@ -47,7 +47,7 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comments
-        fields = "__all__"
+        exclude = ("review",)
 
 
 class SignUpSerializer(serializers.ModelSerializer):
