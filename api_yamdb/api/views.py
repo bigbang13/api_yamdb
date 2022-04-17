@@ -58,6 +58,7 @@ class CategoryViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = "slug"
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
@@ -78,6 +79,7 @@ class GenreViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = "slug"
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
