@@ -9,6 +9,7 @@ from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
+    IsAdminUser,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -17,7 +18,7 @@ from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff
+from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, IsAdminUser
 from .serializers import (
     CategorySerializer,
     CommentsSerializer,
@@ -137,7 +138,9 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAuthenticated]
+    pagination_class = LimitOffsetPagination
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
