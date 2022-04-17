@@ -21,7 +21,6 @@ from .mixins import CreateListDestroyViewSet
 from .permissions import (
     IsAdminOrReadOnly,
     IsAuthorOrStaff,
-    IsAdminRole,
     UserPermission,
 )
 from .serializers import (
