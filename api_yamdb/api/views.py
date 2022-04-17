@@ -18,7 +18,12 @@ from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, IsAdminRole
+from .permissions import (
+    IsAdminOrReadOnly,
+    IsAuthorOrStaff,
+    IsAdminRole,
+    UserPermission,
+)
 from .serializers import (
     CategorySerializer,
     CommentsSerializer,
@@ -138,11 +143,10 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminRole]
-    # permission_classes = [IsAuthenticated]
-    # permission_classes = [AllowAny]
+    UserPermission
+    permission_classes = [UserPermission]
     pagination_class = LimitOffsetPagination
-    lookup_field = 'username'
+    lookup_field = "username"
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -159,7 +163,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Reviews.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = Reviews.objects.filter(title=title).aggregate(
+            Avg("score")
+        )
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):

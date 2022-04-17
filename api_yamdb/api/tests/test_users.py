@@ -150,3 +150,25 @@ class UsersViewsTest(TestCase):
         self.assertEqual(
             response.json(), {"username": ["This field is required."]}
         )
+
+    def test_create_user_by_superuser(self):
+        """Добавление пользователя by superuser."""
+        staff_user = User.objects.create_user(
+            username="staff_user"
+        )
+        staff_user.is_staff = True
+        staff_user.save(update_fields=["is_staff"])
+        staffser_client = APIClient()
+        staffser_client.force_authenticate(staff_user)
+        url = "/api/v1/users/"
+        data = {
+            "username": "string",
+            "email": "user@example.com",
+            "first_name": "string",
+            "last_name": "string",
+            "bio": "string",
+            "role": "user",
+        }
+        response = staffser_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json(), data)
