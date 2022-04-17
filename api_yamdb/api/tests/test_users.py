@@ -104,7 +104,49 @@ class UsersViewsTest(TestCase):
             "first_name": "string",
             "last_name": "string",
             "bio": "string",
-            "role": "user"
+            "role": "user",
         }
         response = self.admin_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json(), data)
+
+    def test_create_user_with_invalid_data(self):
+        """Добавление пользователя с невалидными данными."""
+        url = "/api/v1/users/"
+        data = {}
+        response = self.admin_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(),
+            {
+                "email": ["This field is required."],
+                "username": ["This field is required."],
+            },
+        )
+        data = {
+            "first_name": "string",
+            "last_name": "string",
+            "bio": "string",
+            "role": "user",
+        }
+        response = self.admin_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(),
+            {
+                "email": ["This field is required."],
+                "username": ["This field is required."],
+            },
+        )
+        data = {"username": "string"}
+        response = self.admin_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"email": ["This field is required."]}
+        )
+        data = {"email": "user@example.com"}
+        response = self.admin_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.json(), {"username": ["This field is required."]}
+        )
