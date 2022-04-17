@@ -236,5 +236,5 @@ class UsersViewsTest(TestCase):
             User.objects.filter(username=self.user.username).exists(), True
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        test_json = {'role': ['"admiral" is not a valid choice.']}
+        test_json = {"role": ['"admiral" is not a valid choice.']}
         self.assertEqual(response.json(), test_json)

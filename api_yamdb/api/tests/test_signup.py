@@ -131,12 +131,28 @@ class CommentViewsTest(TestCase):
     def test_create_user_by_admin(self):
         """Администратор может создать пользователя."""
         url = "/api/v1/users/"
-        user_count = User.objects.count()
+        
         data = {"email": "test@mail.ru", "username": "testusername"}
-        response = self.authorized_client.post(url, data)
+        admin_user = User.objects.create_user(
+            username="admin_user",
+            role="admin",
+        )
+        admin_client = APIClient()
+        admin_client.force_authenticate(admin_user)
+        user_count = User.objects.count()
+        response = admin_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), user_count + 1)
-        user = User.objects.get(id=2)
+        user = User.objects.get(id=user_count + 1)
         self.assertEqual(user.username, "testusername")
         self.assertEqual(user.email, "test@mail.ru")
         self.assertEqual(user.role, "user")
+        test_json = {
+            "username": "testusername",
+            "email": "test@mail.ru",
+            "first_name": "",
+            "last_name": "",
+            "bio": "",
+            "role": "user",
+        }
+        self.assertEqual(response.json(), test_json)
