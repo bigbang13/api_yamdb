@@ -25,6 +25,7 @@ from .serializers import (
     ReviewsSerializer,
     SignUpSerializer,
     TitleSerializer,
+    UserSerializer,
 )
 
 
@@ -95,27 +96,43 @@ class GenreViewSet(CreateListDestroyViewSet):
 
 class SignUpAPIView(APIView):
     """
-    Анонимный пользователь высылает JSON c "email" и "username"
-    В ответ на почту получает confirmation_code
-    Использовать имя 'me' в качестве username запрещено.
-    Поля email и username должны быть уникальными.
+    Анонимный пользователь высылает JSON c "email" и "username".
+    В ответ на почту получает confirmation_code.
     """
 
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
+        if User.objects.filter(
+            email=request.data.get("email"),
+            username=request.data.get("username"),
+        ).exists():
             send_mail(
                 "Subject here",
                 "string Код подтвержения",
                 "from@example.com",
-                [serializer.data.get("email")],
+                [request.data.get("email")],
                 fail_silently=False,
             )
-            User.objects.create(**serializer.validated_data, role="user")
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                User.objects.create(**serializer.validated_data, role="user")
+                send_mail(
+                    "Subject here",
+                    "string Код подтвержения",
+                    "from@example.com",
+                    [serializer.data.get("email")],
+                    fail_silently=False,
+                )
+                return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
