@@ -22,3 +22,17 @@ class IsAuthorOrStaff(permissions.BasePermission):
             or request.user.role in ["admin", "moderator"]
             or obj.author == request.user
         )
+
+
+class UserPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if (
+            request.user.is_authenticated
+            and request.user.role == "admin"
+            or request.user.is_staff 
+            and request.user.is_authenticated
+        ):
+            return True
+
+    def has_object_permission(self, request, view, obj):
+        return True

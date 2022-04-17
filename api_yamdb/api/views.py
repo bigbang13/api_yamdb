@@ -5,8 +5,12 @@ from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
                                            FilterSet)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+    IsAdminUser
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reviews.models import Reviews
@@ -14,10 +18,19 @@ from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff
-from .serializers import (CategorySerializer, CommentsSerializer,
-                          GenreSerializer, ReviewsSerializer, SignUpSerializer,
-                          TitlePostSerializer, TitleSerializer, UserSerializer)
+from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
+from .serializers import (
+    CategorySerializer,
+    CommentsSerializer,
+    GenreSerializer,
+    ReviewsSerializer,
+    SignUpSerializer,
+    TitleSerializer,
+    TitlePostSerializer,
+    UserSerializer,
+    CustomTokenObtainPairSerializer,
+)
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class TitleFilter(FilterSet):
@@ -29,7 +42,7 @@ class TitleFilter(FilterSet):
         model = Title
         fields = ("category", "genre", "name", "year")
 
-
+    
 class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Title.objects.all()
@@ -84,6 +97,7 @@ class SignUpAPIView(APIView):
                 [request.data.get("email")],
                 fail_silently=False,
             )
+            return Response(request.data, status=status.HTTP_200_OK)
         else:
             serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
@@ -102,7 +116,10 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    UserPermission
+    permission_classes = [UserPermission]
+    pagination_class = LimitOffsetPagination
+    lookup_field = "username"
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -119,7 +136,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Reviews.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = Reviews.objects.filter(title=title).aggregate(
+            Avg("score")
+        )
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
@@ -147,3 +166,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(author=self.request.user, review_id=review.id)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
