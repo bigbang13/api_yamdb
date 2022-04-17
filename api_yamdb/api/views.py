@@ -1,15 +1,12 @@
-from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
+                                           FilterSet)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reviews.models import Reviews
@@ -18,15 +15,19 @@ from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff
-from .serializers import (
-    CategorySerializer,
-    CommentsSerializer,
-    GenreSerializer,
-    ReviewsSerializer,
-    SignUpSerializer,
-    TitleSerializer,
-    UserSerializer,
-)
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          GenreSerializer, ReviewsSerializer, SignUpSerializer,
+                          TitlePostSerializer, TitleSerializer, UserSerializer)
+
+
+class TitleFilter(FilterSet):
+
+    category = CharFilter(lookup_expr="slug")
+    genre = CharFilter(lookup_expr="slug")
+
+    class Meta:
+        model = Title
+        fields = ("category", "genre", "name", "year")
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -35,23 +36,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("category", "genre", "name", "year")
+    filterset_class = TitleFilter
 
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создавать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_update(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Изменять может только admin!")
-        super(TitleViewSet, self).perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(TitleViewSet, self).perform_destroy(instance)
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleSerializer
+        return TitlePostSerializer
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -63,17 +53,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
 
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(CategoryViewSet, self).perform_destroy(instance)
-
 
 class GenreViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
@@ -83,17 +62,6 @@ class GenreViewSet(CreateListDestroyViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
-
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(GenreViewSet, self).perform_destroy(instance)
 
 
 class SignUpAPIView(APIView):
