@@ -8,6 +8,7 @@ from .views import (
     TitleViewSet,
     CommentViewSet,
     ReviewViewSet,
+    UserViewSet,
 )
 
 app_name = "api"
@@ -23,10 +24,9 @@ router.register(
     CommentViewSet,
     basename="comments",
 )
+router.register("users", UserViewSet)
 
 urlpatterns = [
-    path("v1/", include("djoser.urls")),
-    path("v1/", include("djoser.urls.jwt")),
-    path("v1/", include(router.urls)),
     path("v1/auth/signup/", SignUpAPIView.as_view()),
+    path("v1/", include(router.urls)),
 ]
