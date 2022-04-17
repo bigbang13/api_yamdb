@@ -26,7 +26,9 @@ from .serializers import (
     SignUpSerializer,
     TitleSerializer,
     UserSerializer,
+    CustomTokenObtainPairSerializer,
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -114,6 +116,7 @@ class SignUpAPIView(APIView):
                 [request.data.get("email")],
                 fail_silently=False,
             )
+            return Response(request.data, status=status.HTTP_200_OK)
         else:
             serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
@@ -177,3 +180,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = self.get_review()
         serializer.save(author=self.request.user, review_id=review.id)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

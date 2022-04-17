@@ -1,9 +1,13 @@
 from email.policy import default
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Comments, Reviews
-from users.models import User
+from django.contrib.auth import get_user_model
 from titles.models import Category, Genre, Title
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -106,3 +110,24 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "role",
         )
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username = serializers.CharField(max_length=200, required=True,)
+    confirmation_code = serializers.CharField(max_length=200, required=True,)
+    password = serializers.CharField(
+        # required=False,
+        # read_only=True,
+        default="",
+        max_length=200,
+    )
+
+    def validate_username(self, value):
+        """Пользователь должен существовать, иначе ошибка 404"""
+        get_object_or_404(User, username=value.lower())
+        return value.lower()
+
+    def validate_confirmation_code(self, value):
+        """Валидация confirmation_code"""
+        lower_confirmation_code = value.lower()
+        return lower_confirmation_code
