@@ -1,21 +1,13 @@
 from email.policy import default
-<<<<<<< HEAD
 
 from django.db.models import Avg
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Comments, Reviews
-from titles.models import Category, Genre, Title
-from users.models import User
-=======
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Comments, Reviews
-from users.models import User, ROLE_CHOICES
-from titles.models import Category, Genre, Title
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
->>>>>>> 4d48381da56ada90b83de15cabb1ba6f7a248ea1
+from reviews.models import Comments, Reviews
+from titles.models import Category, Genre, Title
+from users.models import ROLE_CHOICES, User
 
 
 class CategorySerializer(serializers.ModelSerializer):

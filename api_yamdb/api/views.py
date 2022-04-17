@@ -5,32 +5,21 @@ from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
                                            FilterSet)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-    IsAdminUser
-)
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import Reviews
 from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
-from .serializers import (
-    CategorySerializer,
-    CommentsSerializer,
-    GenreSerializer,
-    ReviewsSerializer,
-    SignUpSerializer,
-    TitleSerializer,
-    TitlePostSerializer,
-    UserSerializer,
-    CustomTokenObtainPairSerializer,
-)
-from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          CustomTokenObtainPairSerializer, GenreSerializer,
+                          ReviewsSerializer, SignUpSerializer,
+                          TitlePostSerializer, TitleSerializer, UserSerializer)
 
 
 class TitleFilter(FilterSet):
