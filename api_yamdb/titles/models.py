@@ -28,6 +28,10 @@ class Title(models.Model):
             MaxValueValidator(dt.today().year)
         ]
     )
+    rating = models.IntegerField(
+        default=None,
+        null=True
+    )
     description = models.TextField(
         blank=True
     )
