@@ -124,7 +124,6 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    UserPermission
     permission_classes = [UserPermission]
     pagination_class = LimitOffsetPagination
     lookup_field = "username"
