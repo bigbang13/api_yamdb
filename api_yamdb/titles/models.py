@@ -30,7 +30,8 @@ class Title(models.Model):
     )
     rating = models.IntegerField(
         default=None,
-        null=True
+        null=True,
+        blank=True
     )
     description = models.TextField(
         blank=True
