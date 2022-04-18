@@ -36,6 +36,7 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
 class TitleFilter(FilterSet):
@@ -98,9 +99,10 @@ class SignUpAPIView(APIView):
             email=request.data.get("email"),
             username=request.data.get("username"),
         ).exists():
+            user = get_object_or_404(User, username=request.data.get("username"))
             send_mail(
-                "Subject here",
-                "string Код подтвержения",
+                "Confirmation code for receiving a token",
+                PasswordResetTokenGenerator().make_token(user),
                 "from@example.com",
                 [request.data.get("email")],
                 fail_silently=False,
@@ -109,12 +111,12 @@ class SignUpAPIView(APIView):
         else:
             serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
-                User.objects.create(**serializer.validated_data, role="user")
+                user = User.objects.create(**serializer.validated_data, role="user")
                 send_mail(
-                    "Subject here",
-                    "string Код подтвержения",
+                    "Confirmation code for receiving a token",
+                    PasswordResetTokenGenerator().make_token(user),
                     "from@example.com",
-                    [serializer.data.get("email")],
+                    [request.data.get("email")],
                     fail_silently=False,
                 )
                 return Response(serializer.data, status=status.HTTP_200_OK)
