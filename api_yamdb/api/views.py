@@ -135,9 +135,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
+        title = self.get_title()
         if serializer.is_valid():
             serializer.save(
-                title = self.get_title(),
+                title_id = title.id,
                 rating = self.rating_update,
                 author = self.request.user
             )
