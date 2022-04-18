@@ -1,17 +1,15 @@
+from cgitb import lookup
+
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (AllValuesFilter, CharFilter,
+from django_filters.rest_framework import (BaseInFilter, CharFilter,
                                            DjangoFilterBackend, FilterSet,
                                            NumberFilter)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAdminUser,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -21,25 +19,19 @@ from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
-from .serializers import (
-    CategorySerializer,
-    CommentsSerializer,
-    CustomTokenObtainPairSerializer,
-    GenreSerializer,
-    ReviewsSerializer,
-    SignUpSerializer,
-    TitlePostSerializer,
-    TitleSerializer,
-    UserSerializer,
-)
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          CustomTokenObtainPairSerializer, GenreSerializer,
+                          ReviewsSerializer, SignUpSerializer,
+                          TitlePostSerializer, TitleSerializer, UserSerializer)
 
 
 class TitleFilter(FilterSet):
 
     category = CharFilter(lookup_expr="slug")
     genre = CharFilter(lookup_expr="slug")
-    name = AllValuesFilter(field_name="name")
+    name = CharFilter(lookup_expr="icontains")
     year = NumberFilter(field_name="year")
+
 
     class Meta:
         model = Title
@@ -145,10 +137,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = self.get_title()
+#        rating = self.rating_update
         if serializer.is_valid():
             serializer.save(
                 title_id = title.id,
-                rating = self.rating_update,
+#                rating = rating,
                 author = self.request.user
             )
 
