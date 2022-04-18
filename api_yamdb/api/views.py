@@ -36,7 +36,6 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
-)
 
 
 class TitleFilter(FilterSet):
