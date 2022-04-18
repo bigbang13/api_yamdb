@@ -1,34 +1,34 @@
-from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import (CharFilter,
+                                           DjangoFilterBackend, FilterSet,
+                                           NumberFilter)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     AllowAny,
+    IsAdminUser,
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
-    IsAdminUser,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from reviews.models import Reviews
+from rest_framework_simplejwt.views import TokenObtainPairView
+from reviews.models import Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
-from .permissions import (
-    IsAdminOrReadOnly,
-    IsAuthorOrStaff,
-    UserPermission,
-)
+from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
 from .serializers import (
     CategorySerializer,
     CommentsSerializer,
+    CustomTokenObtainPairSerializer,
     GenreSerializer,
     ReviewsSerializer,
     SignUpSerializer,
+    TitlePostSerializer,
     TitleSerializer,
     UserSerializer,
     CustomTokenObtainPairSerializer,
@@ -36,6 +36,20 @@ from .serializers import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
+)
+
+
+class TitleFilter(FilterSet):
+
+    category = CharFilter(lookup_expr="slug")
+    genre = CharFilter(lookup_expr="slug")
+    name = CharFilter(lookup_expr="icontains")
+    year = NumberFilter(field_name="year")
+
+
+    class Meta:
+        model = Title
+        fields = ("category", "genre", "name", "year")
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -44,23 +58,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("category", "genre", "name", "year")
+    filterset_class = TitleFilter
 
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создавать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_update(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Изменять может только admin!")
-        super(TitleViewSet, self).perform_update(serializer)
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(TitleViewSet, self).perform_destroy(instance)
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return TitleSerializer
+        return TitlePostSerializer
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -72,17 +75,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
 
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(CategoryViewSet, self).perform_destroy(instance)
-
 
 class GenreViewSet(CreateListDestroyViewSet):
     permission_classes = [IsAdminOrReadOnly]
@@ -92,17 +84,6 @@ class GenreViewSet(CreateListDestroyViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
-
-    def perform_create(self, serializer):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Создать может только admin!")
-        if serializer.is_valid():
-            serializer.save()
-
-    def perform_destroy(self, instance):
-        if self.request.user.role != "admin":
-            raise PermissionDenied("Удалять может только admin!")
-        super(GenreViewSet, self).perform_destroy(instance)
 
 
 class SignUpAPIView(APIView):
@@ -174,6 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
+    pagination_class = LimitOffsetPagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
@@ -185,13 +167,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Reviews.objects.filter(title=title).aggregate(
-            Avg("score")
-        )
+        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
-        self.rating_update(serializer)
+        title = self.get_title()
+#        rating = self.rating_update
+        if serializer.is_valid():
+            serializer.save(
+                title_id = title.id,
+#                rating = rating,
+                author = self.request.user
+            )
 
     def perform_update(self, serializer):
         self.rating_update(serializer)
@@ -200,12 +187,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
+    pagination_class = LimitOffsetPagination
 
     def get_review(self):
         return get_object_or_404(
-            Reviews,
+            Review,
             id=self.kwargs.get("review_id"),
-            title__id=self.kwargs.get("title_id"),
+            title__id=self.kwargs.get("title__id"),
         )
 
     def get_queryset(self):

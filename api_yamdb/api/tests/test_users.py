@@ -12,9 +12,7 @@ class UsersViewsTest(TestCase):
         cls.guest_client = APIClient()
         cls.authorized_client = APIClient()
         cls.authorized_client.force_authenticate(cls.user)
-        cls.admin_user = User.objects.create_user(
-            username="admin_user", role="admin"
-        )
+        cls.admin_user = User.objects.create_user(username="admin_user", role="admin")
         cls.admin_client = APIClient()
         cls.admin_client.force_authenticate(cls.admin_user)
 
@@ -142,15 +140,11 @@ class UsersViewsTest(TestCase):
         data = {"username": "string"}
         response = self.admin_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json(), {"email": ["This field is required."]}
-        )
+        self.assertEqual(response.json(), {"email": ["This field is required."]})
         data = {"email": "user@example.com"}
         response = self.admin_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json(), {"username": ["This field is required."]}
-        )
+        self.assertEqual(response.json(), {"username": ["This field is required."]})
 
     def test_create_user_by_superuser(self):
         """Добавление пользователя by superuser."""

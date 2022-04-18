@@ -1,11 +1,13 @@
 from email.policy import default
+
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Comments, Reviews
-from users.models import User, ROLE_CHOICES
-from titles.models import Category, Genre, Title
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from reviews.models import Comment, Review
+from titles.models import Category, Genre, Title
+from users.models import ROLE_CHOICES, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,34 +29,93 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+
+    genre = GenreSerializer(required=True, many=True)
+    category = CategorySerializer(required=True)
+#    rating = serializers.SerializerMethodField(default=None)
     class Meta:
         model = Title
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "year",
+            "rating",
+            "description",
+            "genre",
+            "category",
+        )
+    
+#    def get_rating(self, obj):
+#        if not Reviews.objects.filter(title=obj):
+#            rating = None
+#        else:
+#            rating = Reviews.objects.filter(title=obj).aggregate(Avg("score"))
+#        return rating
+
+
+class TitlePostSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        slug_field="slug", many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug", many=False, queryset=Category.objects.all()
+    )
+
+    class Meta:
+        model = Title
+        fields = (
+            "id",
+            "name",
+            "year",
+            "description",
+            "genre",
+            "category",
+        )
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True, slug_field="username"
+    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    title = serializers.SlugRelatedField(
+        queryset=Title.objects.all(),
+        required=False,
+        slug_field="id",
+        write_only=True
     )
-
     class Meta:
-        model = Reviews
-        exclude = ("title",)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Reviews.objects.all(), fields=("title", "author")
+        model = Review
+    #    exclude = ("title",)
+        fields = "__all__"
+    #    validators = [
+    #        UniqueTogetherValidator(
+    #            queryset=Reviews.objects.all(), fields=("title", "author")
+    #        )
+    #    ]
+    def get_title(self):
+        title = get_object_or_404(
+            Title, id=self.context.get("view").kwargs.get("title_id")
+        )
+        return title
+
+    def validate(self, attrs):
+        if (
+            Review.objects.filter(
+                author=self.context["request"].user, title=self.get_title()
+            ).exists()
+            and self.context["request"].method != "PATCH"
+        ):
+            raise serializers.ValidationError(
+                "Нельзя добавить второй отзыв на произведение"
             )
-        ]
+        return attrs
 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(
-        read_only=True, slug_field="username"
-    )
+    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
 
     class Meta:
-        model = Comments
-        exclude = ("review",)
+        model = Comment
+        #    exclude = ("review",)
+        fields = "__all__"
 
 
 class SignUpSerializer(serializers.ModelSerializer):
