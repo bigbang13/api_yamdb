@@ -4,7 +4,7 @@ from titles.models import Title
 from users.models import User
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
