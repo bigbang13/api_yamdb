@@ -75,7 +75,12 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(read_only=True, slug_field="username")
-
+    title = serializers.SlugRelatedField(
+        queryset=Title.objects.all(),
+        required=False,
+        slug_field="id",
+        write_only=True
+    )
     class Meta:
         model = Reviews
         exclude = ("title",)

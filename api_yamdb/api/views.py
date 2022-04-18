@@ -1,8 +1,9 @@
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
-                                           FilterSet, NumberFilter)
+from django_filters.rest_framework import (AllValuesFilter, CharFilter,
+                                           DjangoFilterBackend, FilterSet,
+                                           NumberFilter)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
@@ -37,7 +38,7 @@ class TitleFilter(FilterSet):
 
     category = CharFilter(lookup_expr="slug")
     genre = CharFilter(lookup_expr="slug")
-    name = CharFilter(field_name="name")
+    name = AllValuesFilter(field_name="name")
     year = NumberFilter(field_name="year")
 
     class Meta:
@@ -143,7 +144,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
-        self.rating_update(serializer)
+        if serializer.is_valid():
+            serializer.save(
+                title = self.get_title(),
+                rating = self.rating_update,
+                author = self.request.user
+            )
 
     def perform_update(self, serializer):
         self.rating_update(serializer)
