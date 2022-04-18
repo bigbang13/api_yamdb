@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from reviews.models import Comments, Reviews
+from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import ROLE_CHOICES, User
 
@@ -82,7 +82,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
         write_only=True
     )
     class Meta:
-        model = Reviews
+        model = Review
     #    exclude = ("title",)
         fields = "__all__"
     #    validators = [
@@ -98,7 +98,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if (
-            Reviews.objects.filter(
+            Review.objects.filter(
                 author=self.context["request"].user, title=self.get_title()
             ).exists()
             and self.context["request"].method != "PATCH"
@@ -113,7 +113,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(read_only=True, slug_field="username")
 
     class Meta:
-        model = Comments
+        model = Comment
         #    exclude = ("review",)
         fields = "__all__"
 
