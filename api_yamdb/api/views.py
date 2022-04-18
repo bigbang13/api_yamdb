@@ -154,9 +154,9 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
         url_path="me",
     )
-    def set_me(self, request):
+    def get_me(self, request):
         user = User.objects.get(username=request.user.username)
-        serializer = UserSerializer(user)
+        serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
