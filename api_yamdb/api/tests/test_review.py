@@ -23,10 +23,6 @@ TEST_CATEGORY_FIELDS: dict = {
     "slug": "films"
 }
 
-TEST_TITLE_FIELDS: dict = {
-    
-}
-
 
 class ReviewViewsTest(TestCase):
     @classmethod
@@ -37,7 +33,7 @@ class ReviewViewsTest(TestCase):
         cls.genre = Genre.objects.create(**TEST_GENRE_FIELDS)
         cls.category = Category.objects.create(**TEST_CATEGORY_FIELDS)
         data = {"name": "Кошмар на улице Вязов", "year": 1984, "genre": cls.genre.slug,
-            "category": cls.category.slug, "description": "Классика"}
+            "category": cls.category.slug, "description": "Классика жанра"}
         cls.title = Title.objects.create(**data)
 
     def setUp(self):
