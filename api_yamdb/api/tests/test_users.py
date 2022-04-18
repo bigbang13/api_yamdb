@@ -256,3 +256,103 @@ class UsersViewsTest(TestCase):
                 "role": "",
             },
         )
+
+    def test_patch_users_me(self):
+        """Изменение данных своей учетной записи.
+        Права доступа: Любой авторизованный пользователь.
+        менять свое имя и майл можно на уникальные значения"""
+        url = "/api/v1/users/me/"
+        data = {
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+        }
+        response = self.authorized_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "authorized_user",
+            "email": "",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+            "role": "",
+        }
+        self.assertEqual(response.json(), test_json)
+        # поменяем email c "" на "test@mail.ru"
+        data = {
+            "email": "test@mail.ru",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+        }
+        response = self.authorized_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "authorized_user",
+            "email": "test@mail.ru",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+            "role": "",
+        }
+        self.assertEqual(response.json(), test_json)
+        # поменяем email c "test@mail.ru" на "test_1@mail.ru"
+        data = {
+            "email": "test_1@mail.ru",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+        }
+        response = self.authorized_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "authorized_user",
+            "email": "test_1@mail.ru",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+            "role": "",
+        }
+        self.assertEqual(response.json(), test_json)
+        # поменяем username c "authorized_user" на "authorized_user_1"
+        data = {
+            "username": "authorized_user_1",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+        }
+        response = self.authorized_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "authorized_user_1",
+            "email": "test_1@mail.ru",
+            "first_name": "New user first name",
+            "last_name": "New user last name",
+            "bio": "new user bio",
+            "role": "",
+        }
+        self.assertEqual(response.json(), test_json)
+
+    def test_patch_users_me_role_by_user(self):
+        """Изменение своей роли юзером"""
+        user = User.objects.create_user(
+            username="testusername",
+            role="user",
+        )
+        user_client = APIClient()
+        user_client.force_authenticate(user)
+        url = "/api/v1/users/me/"
+        data = {
+            "role": "admin",
+        }
+        response = self.authorized_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "authorized_user",
+            "email": "",
+            "first_name": "",
+            "last_name": "",
+            "bio": "",
+            "role": "admin",
+        }
+        self.assertEqual(response.json(), test_json)
