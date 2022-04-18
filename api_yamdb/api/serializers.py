@@ -80,10 +80,18 @@ class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field="username"
     )
+    title = serializers.SlugRelatedField(
+        queryset=Title.objects.all(),
+        required=False,
+        slug_field="id",
+        write_only=True
+    )
 
     class Meta:
         model = Reviews
-        exclude = ("title",)
+        fields = "__all__"
+#        fields = ("title", "id", "text", "author", "score", "pub_date")
+#        exclude = ("title",)
         validators = [
             UniqueTogetherValidator(
                 queryset=Reviews.objects.all(), fields=("title", "author")
