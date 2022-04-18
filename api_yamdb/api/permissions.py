@@ -29,7 +29,7 @@ class UserPermission(permissions.BasePermission):
         if (
             request.user.is_authenticated
             and request.user.role == "admin"
-            or request.user.is_staff 
+            or request.user.is_staff
             and request.user.is_authenticated
         ):
             return True

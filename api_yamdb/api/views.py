@@ -1,12 +1,15 @@
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
-                                           FilterSet)
+from django_filters.rest_framework import CharFilter, DjangoFilterBackend, FilterSet
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    AllowAny,
+    IsAdminUser,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -16,10 +19,17 @@ from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
-from .serializers import (CategorySerializer, CommentsSerializer,
-                          CustomTokenObtainPairSerializer, GenreSerializer,
-                          ReviewsSerializer, SignUpSerializer,
-                          TitlePostSerializer, TitleSerializer, UserSerializer)
+from .serializers import (
+    CategorySerializer,
+    CommentsSerializer,
+    CustomTokenObtainPairSerializer,
+    GenreSerializer,
+    ReviewsSerializer,
+    SignUpSerializer,
+    TitlePostSerializer,
+    TitleSerializer,
+    UserSerializer,
+)
 
 
 class TitleFilter(FilterSet):
@@ -31,7 +41,7 @@ class TitleFilter(FilterSet):
         model = Title
         fields = ("category", "genre", "name", "year")
 
-    
+
 class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Title.objects.all()
@@ -41,7 +51,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ["list", "retrieve"]:
             return TitleSerializer
         return TitlePostSerializer
 
@@ -114,6 +124,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
+    pagination_class = LimitOffsetPagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
@@ -125,9 +136,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Reviews.objects.filter(title=title).aggregate(
-            Avg("score")
-        )
+        title.rating = Reviews.objects.filter(title=title).aggregate(Avg("score"))
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
@@ -140,6 +149,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
+    pagination_class = LimitOffsetPagination
 
     def get_review(self):
         return get_object_or_404(
