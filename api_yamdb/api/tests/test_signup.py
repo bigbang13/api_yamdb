@@ -131,7 +131,6 @@ class CommentViewsTest(TestCase):
     def test_create_user_by_admin(self):
         """Администратор может создать пользователя."""
         url = "/api/v1/users/"
-        
         data = {"email": "test@mail.ru", "username": "testusername"}
         admin_user = User.objects.create_user(
             username="admin_user",

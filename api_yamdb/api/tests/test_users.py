@@ -238,3 +238,21 @@ class UsersViewsTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         test_json = {"role": ['"admiral" is not a valid choice.']}
         self.assertEqual(response.json(), test_json)
+
+    def test_get_users_me(self):
+        """Получение данных своей учетной записи.
+        Права доступа: Любой авторизованный пользователь."""
+        url = "/api/v1/users/me/"
+        response = self.authorized_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.json(),
+            {
+                "username": "authorized_user",
+                "email": "",
+                "first_name": "",
+                "last_name": "",
+                "bio": "",
+                "role": "",
+            },
+        )

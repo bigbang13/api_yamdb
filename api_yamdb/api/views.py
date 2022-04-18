@@ -34,6 +34,7 @@ from .serializers import (
     CustomTokenObtainPairSerializer,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -146,6 +147,17 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [UserPermission]
     pagination_class = LimitOffsetPagination
     lookup_field = "username"
+
+    @action(
+        detail=False,
+        methods=["get"],
+        permission_classes=[IsAuthenticated],
+        url_path="me",
+    )
+    def set_me(self, request):
+        user = User.objects.get(username=request.user.username)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
