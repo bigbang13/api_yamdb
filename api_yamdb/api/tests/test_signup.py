@@ -50,23 +50,17 @@ class CommentViewsTest(TestCase):
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
-        self.assertEqual(
-            response.json(), {"email": ["This field is required."]}
-        )
+        self.assertEqual(response.json(), {"email": ["This field is required."]})
         data = {"email": "test@mail.ru"}
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
-        self.assertEqual(
-            response.json(), {"username": ["This field is required."]}
-        )
+        self.assertEqual(response.json(), {"username": ["This field is required."]})
         data = {"email": "testmail", "username": "testusername_2"}
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
-        self.assertEqual(
-            response.json(), {"email": ["Enter a valid email address."]}
-        )
+        self.assertEqual(response.json(), {"email": ["Enter a valid email address."]})
 
     def test_signup_create_user(self):
         """При регистрации создается пользователь."""
@@ -94,9 +88,7 @@ class CommentViewsTest(TestCase):
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(type(response.json()), dict)
-        self.assertEqual(
-            response.json(), {"email": ["Email должен быть уникальным"]}
-        )
+        self.assertEqual(response.json(), {"email": ["Email должен быть уникальным"]})
 
     def test_signup_create_user_username_unique(self):
         """При регистрации username должен быть уникальным"""
@@ -121,17 +113,13 @@ class CommentViewsTest(TestCase):
         self.assertEqual(type(response.json()), dict)
         self.assertEqual(
             response.json(),
-            {
-                "username": [
-                    "Использовать имя 'me' в качестве username запрещено."
-                ]
-            },
+            {"username": ["Использовать имя 'me' в качестве username запрещено."]},
         )
 
     def test_create_user_by_admin(self):
         """Администратор может создать пользователя."""
         url = "/api/v1/users/"
-        
+
         data = {"email": "test@mail.ru", "username": "testusername"}
         admin_user = User.objects.create_user(
             username="admin_user",
