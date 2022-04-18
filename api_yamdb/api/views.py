@@ -15,7 +15,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from reviews.models import Reviews
+from reviews.models import Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
@@ -141,7 +141,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Reviews.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
@@ -165,7 +165,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         return get_object_or_404(
-            Reviews,
+            Review,
             id=self.kwargs.get("review_id"),
             title__id=self.kwargs.get("title__id"),
         )

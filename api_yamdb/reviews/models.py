@@ -4,7 +4,7 @@ from titles.models import Title
 from users.models import User
 
 
-class Reviews(models.Model):
+class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -29,9 +29,9 @@ class Reviews(models.Model):
         return self.text[:30]
 
 
-class Comments(models.Model):
+class Comment(models.Model):
     review = models.ForeignKey(
-        Reviews, on_delete=models.CASCADE, related_name="comments"
+        Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
