@@ -2,6 +2,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 from users.models import User
+import unittest
 
 
 class UsersViewsTest(TestCase):
@@ -333,7 +334,8 @@ class UsersViewsTest(TestCase):
         }
         self.assertEqual(response.json(), test_json)
 
-    def test_patch_users_me_role_by_user(self):
+    @unittest.expectedFailure
+    def test_patch_users_me_role_by_user_expectedFailure(self):
         """Изменение своей роли юзером"""
         user = User.objects.create_user(
             username="testusername",
@@ -345,14 +347,38 @@ class UsersViewsTest(TestCase):
         data = {
             "role": "admin",
         }
-        response = self.authorized_client.patch(url, data)
+        response = user_client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         test_json = {
-            "username": "authorized_user",
+            "username": "testusername",
             "email": "",
             "first_name": "",
             "last_name": "",
             "bio": "",
             "role": "admin",
+        }
+        self.assertEqual(response.json(), test_json)
+
+    def test_patch_users_me_role_by_user(self):
+        """Пользователь с ролью user не может сменить себе роль"""
+        user = User.objects.create_user(
+            username="testusername",
+            role="user",
+        )
+        user_client = APIClient()
+        user_client.force_authenticate(user)
+        url = "/api/v1/users/me/"
+        data = {
+            "role": "admin",
+        }
+        response = user_client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {
+            "username": "testusername",
+            "email": "",
+            "first_name": "",
+            "last_name": "",
+            "bio": "",
+            "role": "user",
         }
         self.assertEqual(response.json(), test_json)

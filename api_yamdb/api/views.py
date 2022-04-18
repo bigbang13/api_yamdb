@@ -32,6 +32,7 @@ from .serializers import (
     TitleSerializer,
     UserSerializer,
     CustomTokenObtainPairSerializer,
+    UserMeSerializer,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.decorators import action
@@ -161,7 +162,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.method == "PATCH":
             user = get_object_or_404(User, username=request.user.username)
-            serializer = self.get_serializer(
+            serializer = UserMeSerializer(
                 user, data=request.data, partial=True
             )
             if serializer.is_valid():

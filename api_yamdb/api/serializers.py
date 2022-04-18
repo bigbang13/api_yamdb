@@ -117,6 +117,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class UserMeSerializer(UserSerializer):
+    role = serializers.ChoiceField(
+        choices=ROLE_CHOICES,
+        read_only=True,
+    )
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username = serializers.CharField(
         max_length=200,
