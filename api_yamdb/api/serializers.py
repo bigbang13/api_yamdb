@@ -1,5 +1,3 @@
-from email.policy import default
-
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -169,6 +167,13 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "role",
         )
+
+
+class UserMeSerializer(UserSerializer):
+    role = serializers.ChoiceField(
+        choices=ROLE_CHOICES,
+        read_only=True,
+    )
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

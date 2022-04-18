@@ -34,7 +34,11 @@ from .serializers import (
     TitlePostSerializer,
     TitleSerializer,
     UserSerializer,
+    CustomTokenObtainPairSerializer,
+    UserMeSerializer,
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action
 
 
 class TitleFilter(FilterSet):
@@ -122,10 +126,30 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    UserPermission
     permission_classes = [UserPermission]
     pagination_class = LimitOffsetPagination
     lookup_field = "username"
+
+    @action(
+        detail=False,
+        methods=["get", "patch"],
+        permission_classes=[IsAuthenticated],
+        url_path="me",
+    )
+    def get_me(self, request):
+        if request.method == "GET":
+            user = User.objects.get(username=request.user.username)
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            user = get_object_or_404(User, username=request.user.username)
+            serializer = UserMeSerializer(
+                user, data=request.data, partial=True
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
