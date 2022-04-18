@@ -2,7 +2,7 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
-                                           FilterSet)
+                                           FilterSet, NumberFilter)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
@@ -26,6 +26,8 @@ class TitleFilter(FilterSet):
 
     category = CharFilter(lookup_expr="slug")
     genre = CharFilter(lookup_expr="slug")
+    name = CharFilter(field_name="name")
+    year = NumberFilter(field_name="year")
 
     class Meta:
         model = Title
@@ -114,6 +116,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrStaff]
+    pagination_class = LimitOffsetPagination
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
@@ -145,7 +148,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return get_object_or_404(
             Reviews,
             id=self.kwargs.get("review_id"),
-            title__id=self.kwargs.get("title_id"),
+            title__id=self.kwargs.get("title__id"),
         )
 
     def get_queryset(self):
