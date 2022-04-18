@@ -1,9 +1,12 @@
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (CharFilter,
-                                           DjangoFilterBackend, FilterSet,
-                                           NumberFilter)
+from django_filters.rest_framework import (
+    CharFilter,
+    DjangoFilterBackend,
+    FilterSet,
+    NumberFilter,
+)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
@@ -15,7 +18,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from reviews.models import Review
+from reviews.models import Review, Comment
 from titles.models import Category, Genre, Title
 from users.models import User
 
@@ -40,7 +43,6 @@ class TitleFilter(FilterSet):
     genre = CharFilter(lookup_expr="slug")
     name = CharFilter(lookup_expr="icontains")
     year = NumberFilter(field_name="year")
-
 
     class Meta:
         model = Title
@@ -141,18 +143,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))[
+            "score__avg"
+        ]
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
-        title = self.get_title()
-#        rating = self.rating_update
-        if serializer.is_valid():
-            serializer.save(
-                title_id = title.id,
-#                rating = rating,
-                author = self.request.user
-            )
+        self.rating_update(serializer)
 
     def perform_update(self, serializer):
         self.rating_update(serializer)
@@ -165,9 +162,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         return get_object_or_404(
-            Review,
-            id=self.kwargs.get("review_id"),
-            title__id=self.kwargs.get("title__id"),
+            Review, id=self.kwargs["review_id"], title__id=self.kwargs["title_id"]
         )
 
     def get_queryset(self):

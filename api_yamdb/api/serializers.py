@@ -32,7 +32,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(required=True, many=True)
     category = CategorySerializer(required=True)
-#    rating = serializers.SerializerMethodField(default=None)
+    #    rating = serializers.SerializerMethodField(default=None)
     class Meta:
         model = Title
         fields = (
@@ -44,7 +44,8 @@ class TitleSerializer(serializers.ModelSerializer):
             "genre",
             "category",
         )
-    
+
+
 #    def get_rating(self, obj):
 #        if not Reviews.objects.filter(title=obj):
 #            rating = None
@@ -76,20 +77,13 @@ class TitlePostSerializer(serializers.ModelSerializer):
 class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(read_only=True, slug_field="username")
     title = serializers.SlugRelatedField(
-        queryset=Title.objects.all(),
-        required=False,
-        slug_field="id",
-        write_only=True
+        queryset=Title.objects.all(), required=False, slug_field="id", write_only=True
     )
+
     class Meta:
         model = Review
-    #    exclude = ("title",)
         fields = "__all__"
-    #    validators = [
-    #        UniqueTogetherValidator(
-    #            queryset=Reviews.objects.all(), fields=("title", "author")
-    #        )
-    #    ]
+
     def get_title(self):
         title = get_object_or_404(
             Title, id=self.context.get("view").kwargs.get("title_id")
@@ -114,8 +108,7 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        #    exclude = ("review",)
-        fields = "__all__"
+        fields = ("id", "text", "author", "pub_date")
 
 
 class SignUpSerializer(serializers.ModelSerializer):

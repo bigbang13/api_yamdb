@@ -1,8 +1,7 @@
-from django.shortcuts import get_object_or_404
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-from reviews.models import Review
+from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
@@ -15,7 +14,7 @@ TEST_GENRE_FIELDS: dict = {"name": "Ужасы", "slug": "horror"}
 TEST_CATEGORY_FIELDS: dict = {"name": "Фильм", "slug": "films"}
 
 
-class ReviewViewsTest(TestCase):
+class CommentViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -38,33 +37,37 @@ class ReviewViewsTest(TestCase):
             "author": cls.admin_user,
         }
         cls.review = Review.objects.create(**data)
+        data = {"review": cls.review, "text": "Шедеврально", "author": cls.admin_user}
+        cls.comment = Comment.objects.create(**data)
 
     def setUp(self):
         self.client = APIClient()
         self.authorized_client = APIClient()
-        self.authorized_client.force_authenticate(ReviewViewsTest.user)
+        self.authorized_client.force_authenticate(CommentViewsTest.user)
         self.admin_client = APIClient()
-        self.admin_client.force_authenticate(ReviewViewsTest.admin_user)
+        self.admin_client.force_authenticate(CommentViewsTest.admin_user)
 
-    def test_new_title_added(self):
-        title_count = Title.objects.count()
-        self.assertEqual(title_count, 1)
+    def test_new_comment_added(self):
+        self.assertEqual(Comment.objects.count(), 1)
 
-    def test_new_review_added(self):
-        review_count = Review.objects.count()
-        self.assertEqual(review_count, 1)
-
-    def test_new_reviews_added_to_title(self):
-        data = {"text": "Отзыв №2", "score": 3}
-        response = self.authorized_client.post(
-            f"/api/v1/titles/{ReviewViewsTest.title.id}/reviews/", data=data
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        title = get_object_or_404(Title, pk=1)
-        self.assertEqual(title.rating, 4)
-
-    def test_get_review_detail_nonauthorized(self):
-        response = self.client.get(
-            f"/api/v1/titles/{ReviewViewsTest.title.id}/reviews/{ReviewViewsTest.review.id}/"
+    def test_get_comment(self):
+        response = self.authorized_client.get(
+            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_add_new_commit(self):
+        data = {"text": "Djc[bnbntkmyj", "review": CommentViewsTest.review.id}
+        response = self.authorized_client.post(
+            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/",
+            data=data,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_not_add_bad_comment(self):
+        data = {}
+        response = self.authorized_client.post(
+            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/",
+            data=data,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
