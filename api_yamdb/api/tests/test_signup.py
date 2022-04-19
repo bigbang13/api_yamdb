@@ -1,10 +1,13 @@
 import unittest
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core import mail
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
-from users.models import User
-from django.core import mail
+
+User = get_user_model()
 
 
 class CommentViewsTest(TestCase):
@@ -173,3 +176,48 @@ class CommentViewsTest(TestCase):
         self.assertEqual(mail.outbox[0].body, "Here is the message.")
         self.assertEqual(mail.outbox[0].from_email, "from@example.com")
         self.assertEqual(mail.outbox[0].to, ["to@example.com"])
+
+    def test_signup_create_user_mail_confirmation_code(self):
+        """При регистрации на почту приходит код подтверждения."""
+        url = "/api/v1/auth/signup/"
+        user_count = User.objects.count()
+        data = {"email": "test@mail.ru", "username": "testusername"}
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(type(response.json()), dict)
+        test_json = {
+            "email": "test@mail.ru",
+            "username": "testusername",
+            "role": "user",
+        }
+        self.assertEqual(response.json(), test_json)
+        self.assertEqual(User.objects.count(), user_count + 1)
+        user = User.objects.get(id=user_count + 1)
+        self.assertEqual(user.username, "testusername")
+        self.assertEqual(user.email, "test@mail.ru")
+        self.assertEqual(user.role, "user")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
+            mail.outbox[0].subject, "Confirmation code for receiving a token"
+        )
+        self.assertEqual(type(mail.outbox[0].body), str)
+        self.assertEqual(mail.outbox[0].from_email, "from@example.com")
+        self.assertEqual(mail.outbox[0].to, [user.email])
+
+    def test_signup_create_user_check_confirmation_code(self):
+        """Проверка кода подтверждения при регистрации пользователя."""
+        url = "/api/v1/auth/signup/"
+        user_count = User.objects.count()
+        data = {"email": "test@mail.ru", "username": "testusername"}
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = User.objects.get(id=user_count + 1)
+        self.assertEqual(
+            mail.outbox[0].subject, "Confirmation code for receiving a token"
+        )
+        self.assertEqual(type(mail.outbox[0].body), str)
+        confirmation_code = mail.outbox[0].body
+        PasswordResetTokenGenerator().check_token(user, confirmation_code)
+        self.assertTrue(
+            PasswordResetTokenGenerator().check_token(user, confirmation_code)
+        )
