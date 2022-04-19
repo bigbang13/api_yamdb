@@ -37,7 +37,11 @@ class CommentViewsTest(TestCase):
             "author": cls.admin_user,
         }
         cls.review = Review.objects.create(**data)
-        data = {"review": cls.review, "text": "Шедеврально", "author": cls.admin_user}
+        data = {
+            "review": cls.review,
+            "text": "Шедеврально",
+            "author": cls.admin_user,
+        }
         cls.comment = Comment.objects.create(**data)
 
     def setUp(self):

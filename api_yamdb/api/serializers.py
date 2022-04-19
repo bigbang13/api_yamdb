@@ -112,11 +112,6 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    role = serializers.ChoiceField(
-        choices=ROLE_CHOICES,
-        default="user",
-        required=False,
-    )
 
     def validate_email(self, value):
         """Email должен быть уникальным."""
@@ -138,7 +133,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "username",
-            "role",
         )
 
 

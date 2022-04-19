@@ -10,7 +10,7 @@ from rest_framework.test import APIClient
 User = get_user_model()
 
 
-class CommentViewsTest(TestCase):
+class SignUpViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username="authorized_client")
@@ -35,6 +35,19 @@ class CommentViewsTest(TestCase):
         data = {"email": "test@mail.ru", "username": "testusername_2"}
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_signup_valid_data_plus_role(self):
+        """При регистрации даны валидные данные и роль user."""
+        url = "/api/v1/auth/signup/"
+        data = {
+            "email": "test@mail.ru",
+            "username": "testusername_2",
+            "role": "user",
+        }
+        response = self.guest_client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        test_json = {'email': 'test@mail.ru', 'username': 'testusername_2'}
+        self.assertEqual(response.json(), test_json)
 
     def test_signup_400(self):
         """При signup получить ошибку, если запрос с невалидными данными"""
@@ -83,7 +96,6 @@ class CommentViewsTest(TestCase):
         test_json = {
             "email": "test@mail.ru",
             "username": "testusername",
-            "role": "user",
         }
         self.assertEqual(response.json(), test_json)
         self.assertEqual(User.objects.count(), user_count + 1)
@@ -188,7 +200,6 @@ class CommentViewsTest(TestCase):
         test_json = {
             "email": "test@mail.ru",
             "username": "testusername",
-            "role": "user",
         }
         self.assertEqual(response.json(), test_json)
         self.assertEqual(User.objects.count(), user_count + 1)
