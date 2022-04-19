@@ -1,8 +1,5 @@
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from pkg_resources import require
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from reviews.models import Comment, Review
