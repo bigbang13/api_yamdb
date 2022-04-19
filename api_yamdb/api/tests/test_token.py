@@ -3,10 +3,11 @@ import unittest
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from users.models import User
 
 
-class CommentViewsTest(TestCase):
+class TokenViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username="authorized_client")

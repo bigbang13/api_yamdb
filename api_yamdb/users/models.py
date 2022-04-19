@@ -10,7 +10,7 @@ ROLE_CHOICES = (
 
 class User(AbstractUser):
     bio = models.TextField(
-        'Биография',
+        "Биография",
         blank=True,
     )
     role = models.CharField(max_length=16, choices=ROLE_CHOICES)

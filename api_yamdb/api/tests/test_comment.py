@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
+
 from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import User
@@ -37,7 +38,11 @@ class CommentViewsTest(TestCase):
             "author": cls.admin_user,
         }
         cls.review = Review.objects.create(**data)
-        data = {"review": cls.review, "text": "Шедеврально", "author": cls.admin_user}
+        data = {
+            "review": cls.review,
+            "text": "Шедеврально",
+            "author": cls.admin_user,
+        }
         cls.comment = Comment.objects.create(**data)
 
     def setUp(self):
