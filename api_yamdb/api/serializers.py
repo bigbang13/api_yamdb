@@ -1,5 +1,6 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from pkg_resources import require
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -118,6 +119,11 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
+    role = serializers.ChoiceField(
+        choices=ROLE_CHOICES,
+        default="user",
+        required=False,
+    )
 
     def validate_email(self, value):
         """Email должен быть уникальным."""
@@ -139,6 +145,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = (
             "email",
             "username",
+            "role",
         )
 
 

@@ -76,12 +76,14 @@ class CommentViewsTest(TestCase):
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(type(response.json()), dict)
-        self.assertEqual(
-            response.json(),
-            {"email": "test@mail.ru", "username": "testusername"},
-        )
+        test_json = {
+            "email": "test@mail.ru",
+            "username": "testusername",
+            "role": "user",
+        }
+        self.assertEqual(response.json(), test_json)
         self.assertEqual(User.objects.count(), user_count + 1)
-        user = User.objects.get(id=2)
+        user = User.objects.get(id=user_count + 1)
         self.assertEqual(user.username, "testusername")
         self.assertEqual(user.email, "test@mail.ru")
         self.assertEqual(user.role, "user")

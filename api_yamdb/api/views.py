@@ -111,7 +111,9 @@ class SignUpAPIView(APIView):
         else:
             serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
-                user = User.objects.create(**serializer.validated_data, role="user")
+                serializer.save()
+                username = serializer.validated_data.get('username')
+                user = get_object_or_404(User, username=username)
                 send_mail(
                     "Confirmation code for receiving a token",
                     PasswordResetTokenGenerator().make_token(user),
