@@ -192,16 +192,15 @@ class CustomTokenObtainSerializer(serializers.Serializer):
     def validate_confirmation_code(self, value):
         """Валидация confirmation_code"""
         lower_confirmation_code = value.lower()
-        username = self.initial_data.get("username")
-        # breakpoint()
         # это условие нужно чтобы пройти pytest, get_object_or_404 мешает
-        # нужна ошибка 400
         # Проверьте, что при POST запросе `/api/v1/auth/token/` без username,
         # возвращается статус 400
-        if not User.objects.filter(username=username).exists():
-            raise serializers.ValidationError("Нет такого пользователя")
-        user = User.objects.get(username=username)
-        user = User.objects.get(username=self.initial_data.get("username"))
+        if self.initial_data.get("username") is None:
+            raise serializers.ValidationError(
+                "Нельзя делать запрос без username"
+            )
+        username = self.initial_data.get("username")
+        user = get_object_or_404(User, username=username)
         if not PasswordResetTokenGenerator().check_token(
             user, lower_confirmation_code
         ):

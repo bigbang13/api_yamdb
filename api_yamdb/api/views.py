@@ -197,10 +197,11 @@ class CustomTokenObtainView(APIView):
         serializer = CustomTokenObtainSerializer(data=request.data)
         if serializer.is_valid():
             user = get_object_or_404(
-                User, username=request.data.get("username")
+                User, username=serializer.data.get("username")
             )
-            token = self.get_tokens_for_user(user)
-            return Response(token, status.HTTP_200_OK)
+            return Response(
+                self.get_tokens_for_user(user), status.HTTP_200_OK
+            )
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     def get_tokens_for_user(self, user):
