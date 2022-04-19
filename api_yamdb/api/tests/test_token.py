@@ -19,12 +19,13 @@ class TokenViewsTest(TestCase):
         """cool test"""
         self.assertEqual(True, True)
 
-    @unittest.expectedFailure
     def test_auth_token_post(self):
         """Получение JWT-токена в обмен на username и confirmation code."""
         url = "/api/v1/auth/token/"
         User.objects.create_user(username="testusername")
         data = {"username": "testusername", "confirmation_code": "12345"}
         response = self.guest_client.post(url, data)
-        # breakpoint()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(type(response.json()), dict)
+        self.assertEqual(len(response.json()), 1)
+

@@ -11,7 +11,7 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Review
 from titles.models import Category, Genre, Title
@@ -20,7 +20,7 @@ from users.models import User
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
 from .serializers import (CategorySerializer, CommentsSerializer,
-                          CustomTokenObtainPairSerializer, GenreSerializer,
+                          CustomTokenObtainSerializer, GenreSerializer,
                           ReviewsSerializer, SignUpSerializer,
                           TitlePostSerializer, TitleSerializer,
                           UserMeSerializer, UserSerializer)
@@ -190,5 +190,20 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review_id=review.id)
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class CustomTokenObtainView(APIView):
+    serializer_class = CustomTokenObtainSerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        user = get_object_or_404(User, username=request.data.get("username"))
+        serializer = self.serializer_class(request.data)
+        if serializer.is_valid:
+            token = self.get_tokens_for_user(user)
+            return Response(token, status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def get_tokens_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            'access': str(refresh.access_token),
+        }

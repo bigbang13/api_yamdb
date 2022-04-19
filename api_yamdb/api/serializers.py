@@ -174,7 +174,7 @@ class UserMeSerializer(UserSerializer):
     )
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+class CustomTokenObtainSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=200,
         required=True,
@@ -182,12 +182,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     confirmation_code = serializers.CharField(
         max_length=200,
         required=True,
-    )
-    password = serializers.CharField(
-        # required=False,
-        # read_only=True,
-        default="",
-        max_length=200,
     )
 
     def validate_username(self, value):
