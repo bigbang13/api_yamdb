@@ -4,6 +4,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 from users.models import User
+from django.core import mail
 
 
 class CommentViewsTest(TestCase):
@@ -157,3 +158,18 @@ class CommentViewsTest(TestCase):
             "role": "user",
         }
         self.assertEqual(response.json(), test_json)
+
+    def test_send_email(self):
+        """Тестируем отправку почты"""
+        mail.send_mail(
+            "Subject here",
+            "Here is the message.",
+            "from@example.com",
+            ["to@example.com"],
+            fail_silently=False,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Subject here")
+        self.assertEqual(mail.outbox[0].body, "Here is the message.")
+        self.assertEqual(mail.outbox[0].from_email, "from@example.com")
+        self.assertEqual(mail.outbox[0].to, ["to@example.com"])
