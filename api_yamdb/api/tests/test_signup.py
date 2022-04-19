@@ -46,7 +46,7 @@ class SignUpViewsTest(TestCase):
         }
         response = self.guest_client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        test_json = {'email': 'test@mail.ru', 'username': 'testusername_2'}
+        test_json = {"email": "test@mail.ru", "username": "testusername_2"}
         self.assertEqual(response.json(), test_json)
 
     def test_signup_400(self):

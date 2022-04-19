@@ -1,45 +1,29 @@
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (
-    CharFilter,
-    DjangoFilterBackend,
-    FilterSet,
-    NumberFilter,
-)
+from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
+                                           FilterSet, NumberFilter)
 from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (
-    AllowAny,
-    IsAdminUser,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from reviews.models import Review, Comment
+
+from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
-from .serializers import (
-    CategorySerializer,
-    CommentsSerializer,
-    CustomTokenObtainPairSerializer,
-    GenreSerializer,
-    ReviewsSerializer,
-    SignUpSerializer,
-    TitlePostSerializer,
-    TitleSerializer,
-    UserSerializer,
-    CustomTokenObtainPairSerializer,
-    UserMeSerializer,
-)
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.decorators import action
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from .serializers import (CategorySerializer, CommentsSerializer,
+                          CustomTokenObtainPairSerializer, GenreSerializer,
+                          ReviewsSerializer, SignUpSerializer,
+                          TitlePostSerializer, TitleSerializer,
+                          UserMeSerializer, UserSerializer)
 
 
 class TitleFilter(FilterSet):
@@ -101,7 +85,9 @@ class SignUpAPIView(APIView):
             email=request.data.get("email"),
             username=request.data.get("username"),
         ).exists():
-            user = get_object_or_404(User, username=request.data.get("username"))
+            user = get_object_or_404(
+                User, username=request.data.get("username")
+            )
             send_mail(
                 "Confirmation code for receiving a token",
                 PasswordResetTokenGenerator().make_token(user),
@@ -113,7 +99,9 @@ class SignUpAPIView(APIView):
         else:
             serializer = SignUpSerializer(data=request.data)
             if serializer.is_valid():
-                user = User.objects.create(**serializer.validated_data, role="user")
+                user = User.objects.create(
+                    **serializer.validated_data, role="user"
+                )
                 send_mail(
                     "Confirmation code for receiving a token",
                     PasswordResetTokenGenerator().make_token(user),
@@ -169,9 +157,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))[
-            "score__avg"
-        ]
+        title.rating = Review.objects.filter(title=title).aggregate(
+            Avg("score")
+        )["score__avg"]
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
@@ -188,7 +176,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         return get_object_or_404(
-            Review, id=self.kwargs["review_id"], title__id=self.kwargs["title_id"]
+            Review,
+            id=self.kwargs["review_id"],
+            title__id=self.kwargs["title_id"],
         )
 
     def get_queryset(self):

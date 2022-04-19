@@ -4,6 +4,7 @@ from pkg_resources import require
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
 from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
 from users.models import ROLE_CHOICES, User
@@ -74,9 +75,14 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
     title = serializers.SlugRelatedField(
-        queryset=Title.objects.all(), required=False, slug_field="id", write_only=True
+        queryset=Title.objects.all(),
+        required=False,
+        slug_field="id",
+        write_only=True,
     )
 
     class Meta:
@@ -103,7 +109,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(read_only=True, slug_field="username")
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field="username"
+    )
 
     class Meta:
         model = Comment

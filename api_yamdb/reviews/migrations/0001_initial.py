@@ -27,7 +27,9 @@ class Migration(migrations.Migration):
                 (
                     "pub_date",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True, verbose_name="Дата добавления"
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата добавления",
                     ),
                 ),
             ],
@@ -62,7 +64,9 @@ class Migration(migrations.Migration):
                 (
                     "pub_date",
                     models.DateTimeField(
-                        auto_now_add=True, db_index=True, verbose_name="Дата публикации"
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата публикации",
                     ),
                 ),
             ],
