@@ -191,13 +191,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class CustomTokenObtainView(APIView):
-    serializer_class = CustomTokenObtainSerializer
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        user = get_object_or_404(User, username=request.data.get("username"))
-        serializer = self.serializer_class(request.data)
-        if serializer.is_valid:
+        serializer = CustomTokenObtainSerializer(data=request.data)
+        if serializer.is_valid():
+            user = get_object_or_404(
+                User, username=request.data.get("username")
+            )
             token = self.get_tokens_for_user(user)
             return Response(token, status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -205,5 +206,5 @@ class CustomTokenObtainView(APIView):
     def get_tokens_for_user(self, user):
         refresh = RefreshToken.for_user(user)
         return {
-            'access': str(refresh.access_token),
+            "token": str(refresh.access_token),
         }

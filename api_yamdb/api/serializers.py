@@ -1,6 +1,6 @@
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
@@ -192,4 +192,18 @@ class CustomTokenObtainSerializer(serializers.Serializer):
     def validate_confirmation_code(self, value):
         """Валидация confirmation_code"""
         lower_confirmation_code = value.lower()
+        username = self.initial_data.get("username")
+        # breakpoint()
+        # это условие нужно чтобы пройти pytest, get_object_or_404 мешает
+        # нужна ошибка 400
+        # Проверьте, что при POST запросе `/api/v1/auth/token/` без username,
+        # возвращается статус 400
+        if not User.objects.filter(username=username).exists():
+            raise serializers.ValidationError("Нет такого пользователя")
+        user = User.objects.get(username=username)
+        user = User.objects.get(username=self.initial_data.get("username"))
+        if not PasswordResetTokenGenerator().check_token(
+            user, lower_confirmation_code
+        ):
+            raise serializers.ValidationError("Неверный код подтверждения")
         return lower_confirmation_code
