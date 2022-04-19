@@ -146,8 +146,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = self.get_title()
-#        rating = self.rating_update
         if serializer.is_valid():
+            self.rating_update
             serializer.save(
                 title_id = title.id,
 #                rating = rating,
