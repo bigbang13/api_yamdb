@@ -1,9 +1,12 @@
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import (CharFilter,
-                                           DjangoFilterBackend, FilterSet,
-                                           NumberFilter)
+from django_filters.rest_framework import (
+    CharFilter,
+    DjangoFilterBackend,
+    FilterSet,
+    NumberFilter,
+)
 from rest_framework import filters, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
@@ -15,7 +18,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
-from reviews.models import Review
+from reviews.models import Review, Comment
 from titles.models import Category, Genre, Title
 from users.models import User
 
@@ -31,7 +34,11 @@ from .serializers import (
     TitlePostSerializer,
     TitleSerializer,
     UserSerializer,
+    CustomTokenObtainPairSerializer,
+    UserMeSerializer,
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action
 
 
 class TitleFilter(FilterSet):
@@ -40,7 +47,6 @@ class TitleFilter(FilterSet):
     genre = CharFilter(lookup_expr="slug")
     name = CharFilter(lookup_expr="icontains")
     year = NumberFilter(field_name="year")
-
 
     class Meta:
         model = Title
@@ -120,10 +126,30 @@ class SignUpAPIView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    UserPermission
     permission_classes = [UserPermission]
     pagination_class = LimitOffsetPagination
     lookup_field = "username"
+
+    @action(
+        detail=False,
+        methods=["get", "patch"],
+        permission_classes=[IsAuthenticated],
+        url_path="me",
+    )
+    def get_me(self, request):
+        if request.method == "GET":
+            user = User.objects.get(username=request.user.username)
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == "PATCH":
+            user = get_object_or_404(User, username=request.user.username)
+            serializer = UserMeSerializer(
+                user, data=request.data, partial=True
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -141,18 +167,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def rating_update(self, serializer):
         title = self.get_title()
         serializer.save(author=self.request.user, title_id=title.id)
-        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))
+        title.rating = Review.objects.filter(title=title).aggregate(Avg("score"))[
+            "score__avg"
+        ]
         title.save(update_fields=["rating"])
 
     def perform_create(self, serializer):
-        title = self.get_title()
-        if serializer.is_valid():
-            self.rating_update
-            serializer.save(
-                title_id = title.id,
-#                rating = rating,
-                author = self.request.user
-            )
+        self.rating_update(serializer)
 
     def perform_update(self, serializer):
         self.rating_update(serializer)
@@ -165,9 +186,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         return get_object_or_404(
-            Review,
-            id=self.kwargs.get("review_id"),
-            title__id=self.kwargs.get("title__id"),
+            Review, id=self.kwargs["review_id"], title__id=self.kwargs["title_id"]
         )
 
     def get_queryset(self):
