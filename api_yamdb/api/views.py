@@ -7,20 +7,20 @@ from django_filters.rest_framework import (CharFilter, DjangoFilterBackend,
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from reviews.models import Comment, Review
+from reviews.models import Review
 from titles.models import Category, Genre, Title
 from users.models import User
 
 from .mixins import CreateListDestroyViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorOrStaff, UserPermission
 from .serializers import (CategorySerializer, CommentsSerializer,
-                          CustomTokenObtainPairSerializer, GenreSerializer,
+                          CustomTokenObtainSerializer, GenreSerializer,
                           ReviewsSerializer, SignUpSerializer,
                           TitlePostSerializer, TitleSerializer,
                           UserMeSerializer, UserSerializer)
@@ -150,23 +150,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
 
-    def get_queryset(self):
-        title = self.get_title()
-        return title.reviews.all()
-
-    def rating_update(self, serializer):
-        title = self.get_title()
-        serializer.save(author=self.request.user, title_id=title.id)
+    def rating_update(self, title):
         title.rating = Review.objects.filter(title=title).aggregate(
             Avg("score")
         )["score__avg"]
         title.save(update_fields=["rating"])
 
+    def get_queryset(self):
+        title = self.get_title()
+        return title.reviews.all()
+
+    def save_instance(self, serializer):
+        title = self.get_title()
+        serializer.save(author=self.request.user, title_id=title.id)
+        self.rating_update(title)
+
     def perform_create(self, serializer):
-        self.rating_update(serializer)
+        self.save_instance(serializer)
 
     def perform_update(self, serializer):
-        self.rating_update(serializer)
+        self.save_instance(serializer)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        self.rating_update(self.get_title())
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -190,5 +202,22 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review_id=review.id)
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
+class CustomTokenObtainView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = CustomTokenObtainSerializer(data=request.data)
+        if serializer.is_valid():
+            user = get_object_or_404(
+                User, username=serializer.data.get("username")
+            )
+            return Response(
+                self.get_tokens_for_user(user), status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def get_tokens_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            "token": str(refresh.access_token),
+        }

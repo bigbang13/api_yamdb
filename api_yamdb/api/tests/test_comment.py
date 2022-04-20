@@ -48,23 +48,25 @@ class CommentViewsTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.authorized_client = APIClient()
-        self.authorized_client.force_authenticate(CommentViewsTest.user)
+        self.authorized_client.force_authenticate(self.user)
         self.admin_client = APIClient()
-        self.admin_client.force_authenticate(CommentViewsTest.admin_user)
+        self.admin_client.force_authenticate(self.admin_user)
 
     def test_new_comment_added(self):
         self.assertEqual(Comment.objects.count(), 1)
 
     def test_get_comment(self):
         response = self.authorized_client.get(
-            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/"
+            f"/api/v1/titles/{self.title.id}/"
+            f"reviews/{self.review.id}/comments/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_add_new_commit(self):
-        data = {"text": "Djc[bnbntkmyj", "review": CommentViewsTest.review.id}
+        data = {"text": "Djc[bnbntkmyj", "review": self.review.id}
         response = self.authorized_client.post(
-            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/",
+            f"/api/v1/titles/{self.title.id}/"
+            f"reviews/{self.review.id}/comments/",
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -72,7 +74,8 @@ class CommentViewsTest(TestCase):
     def test_not_add_bad_comment(self):
         data = {}
         response = self.authorized_client.post(
-            f"/api/v1/titles/{CommentViewsTest.title.id}/reviews/{CommentViewsTest.review.id}/comments/",
+            f"/api/v1/titles/{self.title.id}/"
+            f"reviews/{self.review.id}/comments/",
             data=data,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

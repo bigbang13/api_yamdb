@@ -1,9 +1,6 @@
-from django.db.models import Avg
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import get_object_or_404
-from pkg_resources import require
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from reviews.models import Comment, Review
 from titles.models import Category, Genre, Title
@@ -176,7 +173,7 @@ class UserMeSerializer(UserSerializer):
     )
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+class CustomTokenObtainSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=200,
         required=True,
@@ -184,12 +181,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     confirmation_code = serializers.CharField(
         max_length=200,
         required=True,
-    )
-    password = serializers.CharField(
-        # required=False,
-        # read_only=True,
-        default="",
-        max_length=200,
     )
 
     def validate_username(self, value):
@@ -200,4 +191,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate_confirmation_code(self, value):
         """Валидация confirmation_code"""
         lower_confirmation_code = value.lower()
+        # это условие нужно чтобы пройти pytest, get_object_or_404 мешает
+        # Проверьте, что при POST запросе `/api/v1/auth/token/` без username,
+        # возвращается статус 400
+        if self.initial_data.get("username") is None:
+            raise serializers.ValidationError(
+                "Нельзя делать запрос без username"
+            )
+        username = self.initial_data.get("username")
+        user = get_object_or_404(User, username=username)
+        if not PasswordResetTokenGenerator().check_token(
+            user, lower_confirmation_code
+        ):
+            raise serializers.ValidationError("Неверный код подтверждения")
         return lower_confirmation_code
