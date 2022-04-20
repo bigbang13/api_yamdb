@@ -150,23 +150,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs["title_id"])
 
-    def get_queryset(self):
-        title = self.get_title()
-        return title.reviews.all()
-
-    def rating_update(self, serializer):
-        title = self.get_title()
-        serializer.save(author=self.request.user, title_id=title.id)
+    def rating_update(self, title):
         title.rating = Review.objects.filter(title=title).aggregate(
             Avg("score")
         )["score__avg"]
         title.save(update_fields=["rating"])
 
+    def get_queryset(self):
+        title = self.get_title()
+        return title.reviews.all()
+
+    def save_instance(self, serializer):
+        title = self.get_title()
+        serializer.save(author=self.request.user, title_id=title.id)
+        self.rating_update(title)
+
     def perform_create(self, serializer):
-        self.rating_update(serializer)
+        self.save_instance(serializer)
 
     def perform_update(self, serializer):
-        self.rating_update(serializer)
+        self.save_instance(serializer)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        self.rating_update(self.get_title())
+        return Response(status=status.HTTP_204_NO_CONTENT)    
 
 
 class CommentViewSet(viewsets.ModelViewSet):
