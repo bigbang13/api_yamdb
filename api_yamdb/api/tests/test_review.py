@@ -43,9 +43,9 @@ class ReviewViewsTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.authorized_client = APIClient()
-        self.authorized_client.force_authenticate(ReviewViewsTest.user)
+        self.authorized_client.force_authenticate(self.user)
         self.admin_client = APIClient()
-        self.admin_client.force_authenticate(ReviewViewsTest.admin_user)
+        self.admin_client.force_authenticate(self.admin_user)
 
     def test_new_title_added(self):
         title_count = Title.objects.count()
@@ -58,7 +58,7 @@ class ReviewViewsTest(TestCase):
     def test_new_reviews_added_to_title(self):
         data = {"text": "Отзыв №2", "score": 3}
         response = self.authorized_client.post(
-            f"/api/v1/titles/{ReviewViewsTest.title.id}/reviews/", data=data
+            f"/api/v1/titles/{self.title.id}/reviews/", data=data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         title = get_object_or_404(Title, pk=1)
@@ -66,6 +66,6 @@ class ReviewViewsTest(TestCase):
 
     def test_get_review_detail_nonauthorized(self):
         response = self.client.get(
-            f"/api/v1/titles/{ReviewViewsTest.title.id}/reviews/{ReviewViewsTest.review.id}/"
+            f"/api/v1/titles/{self.title.id}/reviews/{self.review.id}/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
