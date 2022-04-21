@@ -15,8 +15,11 @@ class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="reviews"
     )
-    score = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    score = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1, message="Оценка не может быть ниже 1"),
+            MaxValueValidator(10, message="Оценка не может быть выше 10")
+            ]
     )
     pub_date = models.DateTimeField(
         "Дата публикации", auto_now_add=True, db_index=True
