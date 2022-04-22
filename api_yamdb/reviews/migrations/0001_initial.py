@@ -8,35 +8,76 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Comment',
+            name="Comment",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('pub_date', models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Дата добавления')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "pub_date",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата добавления",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Comment',
-                'verbose_name_plural': 'Comments',
-                'ordering': ['-pub_date'],
+                "verbose_name": "Comment",
+                "verbose_name_plural": "Comments",
+                "ordering": ["-pub_date"],
             },
         ),
         migrations.CreateModel(
-            name='Review',
+            name="Review",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('score', models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1, message='Оценка не может быть ниже 1'), django.core.validators.MaxValueValidator(10, message='Оценка не может быть выше 10')])),
-                ('pub_date', models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Дата публикации')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "score",
+                    models.PositiveSmallIntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(
+                                1, message="Оценка не может быть ниже 1"
+                            ),
+                            django.core.validators.MaxValueValidator(
+                                10, message="Оценка не может быть выше 10"
+                            ),
+                        ]
+                    ),
+                ),
+                (
+                    "pub_date",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                        verbose_name="Дата публикации",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Rewiew',
-                'verbose_name_plural': 'Rewiews',
-                'ordering': ['-pub_date'],
+                "verbose_name": "Rewiew",
+                "verbose_name_plural": "Rewiews",
+                "ordering": ["-pub_date"],
             },
         ),
     ]

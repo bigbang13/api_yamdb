@@ -24,7 +24,7 @@ class Title(models.Model):
     name = models.CharField(max_length=256)
     year = models.PositiveIntegerField(
         db_index=True,
-        validators=[MinValueValidator(1), MaxValueValidator(dt.today().year)]
+        validators=[MinValueValidator(1), MaxValueValidator(dt.today().year)],
     )
     rating = models.IntegerField(default=None, null=True, blank=True)
     description = models.TextField(blank=True)
