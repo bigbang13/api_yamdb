@@ -9,9 +9,9 @@ app_name = "api"
 
 router = DefaultRouter()
 
-router.register(r"titles", TitleViewSet)
-router.register(r"genres", GenreViewSet)
-router.register(r"categories", CategoryViewSet)
+router.register("titles", TitleViewSet)
+router.register("genres", GenreViewSet)
+router.register("categories", CategoryViewSet)
 router.register(
     r"titles/(?P<title_id>\d+)/reviews", ReviewViewSet, basename="reviews"
 )
