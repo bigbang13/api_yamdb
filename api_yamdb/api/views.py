@@ -81,12 +81,12 @@ class SignUpAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        serializer = SignUpSerializer(data=request.data)
         if User.objects.filter(
             email=request.data.get("email"),
             username=request.data.get("username"),
         ).exists():
             user = User.objects.get(username=request.data.get("username"))
-        serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.create(
                 **serializer.validated_data, role="user"
