@@ -26,7 +26,6 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-
     genre = GenreSerializer(required=True, many=True)
     category = CategorySerializer(required=True)
 
@@ -192,9 +191,6 @@ class CustomTokenObtainSerializer(serializers.Serializer):
     def validate_confirmation_code(self, value):
         """Валидация confirmation_code"""
         lower_confirmation_code = value.lower()
-        # это условие нужно чтобы пройти pytest, get_object_or_404 мешает
-        # Проверьте, что при POST запросе `/api/v1/auth/token/` без username,
-        # возвращается статус 400
         if self.initial_data.get("username") is None:
             raise serializers.ValidationError(
                 "Нельзя делать запрос без username"
