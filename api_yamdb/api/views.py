@@ -85,19 +85,16 @@ class SignUpAPIView(APIView):
             email=request.data.get("email"),
             username=request.data.get("username"),
         ).exists():
-            user = get_object_or_404(
-                User, username=request.data.get("username")
-            )
-            self.send_token(user, request.data.get("email"))
-            return Response(request.data, status=status.HTTP_200_OK)
+            user = User.objects.get(username=request.data.get("username"))
         serializer = SignUpSerializer(data=request.data)
         if serializer.is_valid():
             user = User.objects.create(
                 **serializer.validated_data, role="user"
             )
-            self.send_token(user, request.data.get("email"))
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        self.send_token(user, request.data.get("email"))
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def send_token(self, user, email):
         send_mail(
