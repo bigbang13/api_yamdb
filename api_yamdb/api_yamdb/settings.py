@@ -12,6 +12,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*", "testserver"]
 
+ADMIN_MAIL = "from@example.com"
 
 # Application definition
 

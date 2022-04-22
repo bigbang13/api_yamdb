@@ -24,6 +24,7 @@ from .serializers import (CategorySerializer, CommentsSerializer,
                           ReviewsSerializer, SignUpSerializer,
                           TitlePostSerializer, TitleSerializer,
                           UserMeSerializer, UserSerializer)
+from django.conf import settings
 
 
 class TitleFilter(FilterSet):
@@ -100,7 +101,7 @@ class SignUpAPIView(APIView):
         send_mail(
             "Confirmation code for receiving a token",
             PasswordResetTokenGenerator().make_token(user),
-            "from@example.com",
+            settings.ADMIN_MAIL,
             [email],
             fail_silently=False,
         )
