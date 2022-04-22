@@ -88,29 +88,25 @@ class SignUpAPIView(APIView):
             user = get_object_or_404(
                 User, username=request.data.get("username")
             )
-            send_mail(
-                "Confirmation code for receiving a token",
-                PasswordResetTokenGenerator().make_token(user),
-                "from@example.com",
-                [request.data.get("email")],
-                fail_silently=False,
-            )
+            self.send_token(user, request.data.get("email"))
             return Response(request.data, status=status.HTTP_200_OK)
-        else:
-            serializer = SignUpSerializer(data=request.data)
-            if serializer.is_valid():
-                user = User.objects.create(
-                    **serializer.validated_data, role="user"
-                )
-                send_mail(
-                    "Confirmation code for receiving a token",
-                    PasswordResetTokenGenerator().make_token(user),
-                    "from@example.com",
-                    [request.data.get("email")],
-                    fail_silently=False,
-                )
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = SignUpSerializer(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.create(
+                **serializer.validated_data, role="user"
+            )
+            self.send_token(user, request.data.get("email"))
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def send_token(self, user, email):
+        send_mail(
+            "Confirmation code for receiving a token",
+            PasswordResetTokenGenerator().make_token(user),
+            "from@example.com",
+            [email],
+            fail_silently=False,
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
